@@ -95,20 +95,24 @@ def main(args):
         s = 'total_time:{:.2f}, sparsity_qk:{:.2f}, sparsity_vp:{:.2f}, sparsity_mlp:{:.2f}, Total sparsity:{:.2f}'.format(total_time, sparsity_qk, sparsity_vp, sparsity_mlp, sparsity)
         print(s)
 
-    if args.save_dir:
-        from utils.customized_llama import LlamaForCausalLM
-        model.half()
-        model.cpu()
-        config = get_config(model)
-        pruned_model = LlamaForCausalLM(config)
-        pruned_model.half()
-        pruned_model.load_state_dict(model.state_dict(), strict=True)
-        save_dir = os.path.join(args.save_dir, model_name, 'SR:{}_{}'.format(args.sparsity, model_name))
-        print('save model...')
-        pruned_model.save_pretrained(save_dir)
-        print('save tokenizer...')
-        tokenizer.save_pretrained(save_dir)
-        print('save dir:', save_dir)
+    # if args.save_dir:
+    # always save the model
+    if not args.save_dir:
+        args.save_dir = './pruned_models'
+    
+    from utils.customized_llama import LlamaForCausalLM
+    model.half()
+    model.cpu()
+    config = get_config(model)
+    pruned_model = LlamaForCausalLM(config)
+    pruned_model.half()
+    pruned_model.load_state_dict(model.state_dict(), strict=True)
+    save_dir = os.path.join(args.save_dir, model_name, 'SR:{}_{}'.format(args.sparsity, model_name))
+    print('save model...')
+    pruned_model.save_pretrained(save_dir)
+    print('save tokenizer...')
+    tokenizer.save_pretrained(save_dir)
+    print('save dir:', save_dir)
 
 
 if __name__ == "__main__":
