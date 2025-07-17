@@ -3,7 +3,7 @@ import torch.nn as nn
 from tqdm import tqdm
 import torch.nn.functional as F
 from typing import Union
-from datasets import load_from_disk
+from datasets import load_from_disk, load_dataset
 from lm_eval import models
 
 
@@ -39,9 +39,10 @@ def get_model(args):
 def get_bookcorpus(nsamples, seed, seqlen, tokenizer):
 
     from datasets import load_dataset, load_from_disk
-    traindata = load_from_disk(
-        '/root/datasets/bookcorpus/train'
-    )
+    # traindata = load_from_disk(
+    #     '/root/datasets/bookcorpus/train'
+    # )
+    traindata = load_dataset("SamuelYang/bookcorpus", split="train")
     tokenized_samples, history = [], []
     import random
     random.seed(seed)
@@ -109,7 +110,8 @@ class Prompter(object):
 
 def get_alpaca(nsamples, seed, seqlen, tokenizer):
     prompter = Prompter('alpaca')
-    dataset = load_from_disk('/root/datasets/alpaca/train')
+    # dataset = load_from_disk('/root/datasets/alpaca/train')
+    dataset = load_dataset("tatsu-lab/alpaca", split="train")
     def tokenize(prompt, add_eos_token=True):
         result = tokenizer(
             prompt, return_tensors='pt',
@@ -147,7 +149,8 @@ def get_c4(nsamples, seed, seqlen, tokenizer):
 
 
     from datasets import load_dataset, load_from_disk
-    traindata = load_from_disk('/root/allenai/c4/train')
+    # traindata = load_from_disk('/root/allenai/c4/train')
+    traindata = load_dataset("allenai/c4", "en", split="train")
     # valdata = load_from_disk('allenai/c4/test')
 
     import random
