@@ -129,6 +129,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
     set_seed(args.seed)
-    model_name = 'Llama-{}'.format(args.base_model)
-    args.base_model = '/userhome/home/hejiujun/ckpts/Llama-{}'.format(args.base_model)
+    # model_name = 'Llama-{}'.format(args.base_model)
+    # args.base_model = '/userhome/home/hejiujun/ckpts/Llama-{}'.format(args.base_model)
     main(args)
