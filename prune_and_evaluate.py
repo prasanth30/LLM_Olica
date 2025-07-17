@@ -149,7 +149,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
 
-    args.model_args = "pretrained=meta-llama/{}".format(args.base_model)
+    args.model_args = "pretrained={}".format(args.base_model)
 
     set_seed(args.seed)
     main(args) 
