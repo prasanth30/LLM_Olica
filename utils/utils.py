@@ -37,29 +37,50 @@ def get_model(args):
 
 
 def get_bookcorpus(nsamples, seed, seqlen, tokenizer):
-
-    from datasets import load_dataset, load_from_disk
-    # traindata = load_from_disk(
-    #     '/root/datasets/bookcorpus/train'
-    # )
-    traindata = load_dataset("SamuelYang/bookcorpus", split="train")
-    tokenized_samples, history = [], []
+    from datasets import load_dataset
     import random
     random.seed(seed)
-    for _ in tqdm(range(nsamples), desc='Sample calibration data from bookcorpus dataset.'):
-            while True:
-                i = random.randint(0, len(traindata) - 1)
-                tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-                if tokenized_sample.input_ids.shape[1] >= seqlen and i not in history:
-                    history.append(i)
-                    break
-            i = random.randint(0, tokenized_sample.input_ids.shape[1] - seqlen)
-            inp = tokenized_sample.input_ids[:, i:i + seqlen]
-            tar = inp.clone()
-            tar[:, :-1] = -100
-            tokenized_samples.append((inp, tar))
-
-    return tokenized_samples
+    traindata = load_dataset("SamuelYang/bookcorpus", split="train")
+    total = len(traindata)
+    # Oversample to account for short texts
+    oversample_factor = 2
+    pool_size = min(total, nsamples * oversample_factor)
+    all_indices = list(range(total))
+    random.shuffle(all_indices)
+    selected_indices = []
+    tokenized_samples = []
+    idx = 0
+    # Collect enough unique, long-enough samples
+    while len(selected_indices) < nsamples and idx < pool_size:
+        i = all_indices[idx]
+        text = traindata[i]['text']
+        # Fast length check before tokenization
+        if len(text) > seqlen * 2:  # rough filter
+            tokenized = tokenizer(text, return_tensors='pt')
+            if tokenized.input_ids.shape[1] >= seqlen:
+                selected_indices.append(i)
+                tokenized_samples.append(tokenized)
+        idx += 1
+    # If not enough, fall back to slow method for the rest
+    while len(selected_indices) < nsamples:
+        i = random.randint(0, total - 1)
+        if i in selected_indices:
+            continue
+        text = traindata[i]['text']
+        tokenized = tokenizer(text, return_tensors='pt')
+        if tokenized.input_ids.shape[1] >= seqlen:
+            selected_indices.append(i)
+            tokenized_samples.append(tokenized)
+    # Now, for each tokenized sample, sample a segment
+    samples = []
+    for tokenized_sample in tqdm(tokenized_samples[:nsamples], desc='Sample calibration data from bookcorpus dataset.'):
+        input_len = tokenized_sample.input_ids.shape[1]
+        start = random.randint(0, input_len - seqlen)
+        inp = tokenized_sample.input_ids[:, start:start + seqlen]
+        tar = inp.clone()
+        tar[:, :-1] = -100
+        samples.append((inp, tar))
+    return samples
 
 
 alpaca_template = {
