@@ -148,5 +148,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_base_path", type=str, default=None)
     args = parser.parse_args()
     print(args)
+
+    args.model_args = ''
     set_seed(args.seed)
     main(args) 

@@ -63,7 +63,7 @@ if __name__ == "__main__":
     set_seed(args.seed)
     model_name = 'Llama-{}'.format(args.base_model)
 
-    args.model_args = None
+    args.model_args = "pretrained=meta-llama/{}".format(args.base_model)
     # args.model_args = "pretrained=/userhome/home/hejiujun/ckpts/Llama-{}".format(args.base_model)
     # args.base_model = '/userhome/home/hejiujun/ckpts/Llama-{}'.format(args.base_model)
     main(args)
